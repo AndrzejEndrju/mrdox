@@ -72,7 +72,7 @@ OutDirectory("output",
     llvm::cl::init("docs"), llvm::cl::cat(ClangDocCategory));
 
 static llvm::cl::opt<bool>
-PublicOnly("public", llvm::cl::desc("Document only public declarations."),
+  PublicOnly("public", llvm::cl::desc("Document only public declarations."),
     llvm::cl::init(false), llvm::cl::cat(ClangDocCategory));
 
 static llvm::cl::opt<bool> DoxygenOnly(

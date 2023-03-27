@@ -364,7 +364,7 @@ populateParentNamespaces(llvm::SmallVector<Reference, 4> &Namespaces,
                             InfoType::IT_namespace);
 }
 
-void PopulateTemplateParameters(std::optional<TemplateInfo> &TemplateInfo,
+void PopulateTemplateParameters(llvm::Optional<TemplateInfo> &TemplateInfo,
                                 const clang::Decl *D) {
   if (const TemplateParameterList *ParamList =
           D->getDescribedTemplateParams()) {

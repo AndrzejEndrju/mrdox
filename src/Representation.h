@@ -204,6 +204,11 @@ struct TemplateParamInfo {
     // for this declaration. Typical values will be "class T" and
     // "typename T = int".
     SmallString<16> Contents;
+
+  bool operator==(const TemplateParamInfo & rhs) const
+  {
+    return Contents == rhs.Contents;
+  };
 };
 
 struct TemplateSpecializationInfo {
@@ -212,6 +217,12 @@ struct TemplateSpecializationInfo {
 
     // Template parameters applying to the specialized record/function.
     std::vector<TemplateParamInfo> Params;
+
+    bool operator==(const TemplateSpecializationInfo & rhs) const
+    {
+      return SpecializationOf == rhs.SpecializationOf
+          && Params == rhs.Params;
+    }
 };
 
 // Records the template information for a struct or function that is a template
@@ -221,7 +232,7 @@ struct TemplateInfo {
     std::vector<TemplateParamInfo> Params;
 
     // Set when this is a specialization of another record/function.
-    std::optional<TemplateSpecializationInfo> Specialization;
+    llvm::Optional<TemplateSpecializationInfo> Specialization;
 };
 
 // Info for field types.
@@ -370,7 +381,7 @@ struct SymbolInfo
 
     void merge(SymbolInfo&& I);
 
-    std::optional<Location> DefLoc;     // Location where this decl is defined.
+    llvm::Optional<Location> DefLoc;     // Location where this decl is defined.
     llvm::SmallVector<Location, 2> Loc; // Locations where this decl is declared.
 };
 
@@ -397,7 +408,7 @@ struct FunctionInfo : public SymbolInfo {
     SmallString<16> FullName;
 
     // When present, this function is a template or specialization.
-    std::optional<TemplateInfo> Template;
+    llvm::Optional<TemplateInfo> Template;
 };
 
 // TODO: Expand to allow for documenting templating, inheritance access,
@@ -419,7 +430,7 @@ struct RecordInfo
     SmallString<16> FullName;
 
     // When present, this record is a template or specialization.
-    std::optional<TemplateInfo> Template;
+    llvm::Optional<TemplateInfo> Template;
 
     // Indicates if the record was declared using a typedef. Things like anonymous
     // structs in a typedef:
@@ -514,7 +525,7 @@ struct EnumInfo : public SymbolInfo {
     // Set to nonempty to the type when this is an explicitly typed enum. For
     //   enum Foo : short { ... };
     // this will be "short".
-    std::optional<TypeInfo> BaseType;
+    llvm::Optional<TypeInfo> BaseType;
 
     llvm::SmallVector<EnumValueInfo, 4> Members; // List of enum members.
 };
@@ -530,7 +541,7 @@ struct Index : public Reference {
     bool operator==(const SymbolID& Other) const { return USR == Other; }
     bool operator<(const Index& Other) const;
 
-    std::optional<SmallString<16>> JumpToSection;
+    llvm::Optional<SmallString<16>> JumpToSection;
     std::vector<Index> Children;
 
     void sort();
@@ -558,8 +569,8 @@ struct ClangDocContext {
     std::string SourceRoot;   // Directory where processed files are stored. Links
     // to definition locations will only be generated if
     // the file is in this dir.
-// URL of repository that hosts code used for links to definition locations.
-    std::optional<std::string> RepositoryUrl;
+    // URL of repository that hosts code used for links to definition locations.
+    llvm::Optional<std::string> RepositoryUrl;
     // Path of CSS stylesheets that will be copied to OutDirectory and used to
     // style all HTML files.
     std::vector<std::string> UserStylesheets;

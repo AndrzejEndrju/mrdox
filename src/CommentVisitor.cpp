@@ -9,7 +9,9 @@
 // Official repository: https://github.com/cppalliance/mrdox
 //
 
-#include "CommentVisitor.h "
+#include "CommentVisitor.h"
+#include "clang/AST/CommentVisitor.h"
+
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable: 5054) // C5054: operator '+': deprecated between enumerations of different types
