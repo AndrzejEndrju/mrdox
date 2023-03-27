@@ -21,7 +21,7 @@ project(
         VERSION 1.0.0
         DESCRIPTION "C++ Javadoc Extraction Tool"
         HOMEPAGE_URL "https://github.com/cppalliance/mrdox"
-        LANGUAGES CXX
+        LANGUAGES C CXX
 )
 
 #-------------------------------------------------
