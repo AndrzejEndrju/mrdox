@@ -44,6 +44,7 @@
 #include "llvm/Support/Signals.h"
 #include "llvm/Support/ThreadPool.h"
 #include "llvm/Support/raw_ostream.h"
+#include "config.hpp"
 #include <atomic>
 #include <mutex>
 #include <string>
@@ -118,6 +119,12 @@ FormatEnum("format", llvm::cl::desc("Format for outputted docs."),
     llvm::cl::init(OutputFormatTy::yaml),
     llvm::cl::cat(ClangDocCategory));
 
+static llvm::cl::opt<std::string>
+ConfigPath("config",
+           llvm::cl::desc("path fo the config file"),
+           llvm::cl::init(".mrdox.yml"),
+           llvm::cl::cat(ClangDocCategory));
+
 std::string getFormatString() {
     switch (FormatEnum) {
     case OutputFormatTy::yaml:
@@ -172,6 +179,23 @@ Example usage for a project using a compile commands database:
     if (!G) {
         llvm::errs() << toString(G.takeError()) << "\n";
         return 1;
+    }
+
+    if (ConfigPath.getValue() != ConfigPath.getDefault().getValue()
+      && !llvm::sys::fs::exists(ConfigPath.getValue()))
+    {
+      llvm::errs() << "Config file '" << ConfigPath.getValue() << "' not found" << "\n";
+      return 1;
+    }
+
+    mrdox::config cfg{};
+
+    if (llvm::sys::fs::exists(ConfigPath.getValue()))
+    {
+      auto oo = mrdox::load_config(ConfigPath.getValue());
+      if (!oo)
+        return 1;
+      cfg = *oo;
     }
 
     ArgumentsAdjuster ArgAdjuster;
