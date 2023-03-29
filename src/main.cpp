@@ -211,20 +211,34 @@ Example usage for a project using a compile commands database:
         CDCtx.FilesToCopy.emplace_back(IndexJS.str());
     }
 
+    //--------------------------------------------
+    //
     // Mapping phase
-    llvm::outs() << "Mapping decls...\n";
-    auto Err =
-        Executor->get()->execute(doc::newMapperActionFactory(CDCtx), ArgAdjuster);
-    if (Err) {
-        if (IgnoreMappingFailures)
-            llvm::errs() << "Error mapping decls in files. Clang-doc will ignore "
-            "these files and continue:\n"
-            << toString(std::move(Err)) << "\n";
-        else {
-            llvm::errs() << toString(std::move(Err)) << "\n";
-            return 1;
+    //
+    //--------------------------------------------
+
+    {
+        llvm::outs() << "Mapping decls...\n";
+        auto Err = Executor->get()->execute(
+            doc::newMapperActionFactory(CDCtx),
+            ArgAdjuster);
+        if(Err)
+        {
+            if(! IgnoreMappingFailures)
+            {
+                llvm::errs() <<
+                    toString(std::move(Err)) << "\n";
+                return EXIT_FAILURE;
+            }
+
+            llvm::errs() <<
+                "Error mapping decls in files. Clang-doc will ignore "
+                "these files and continue:\n" <<
+                toString(std::move(Err)) << "\n";
         }
     }
+
+    //--------------------------------------------
 
     // Collect values into output by key.
     // In ToolResults, the Key is the hashed USR and the value is the
@@ -307,12 +321,17 @@ Example usage for a project using a compile commands database:
         return 1;
     }
 
-    llvm::outs() << "Generating assets for docs...\n";
-    Err = G->get()->createResources(CDCtx);
-    if (Err) {
-        llvm::errs() << toString(std::move(Err)) << "\n";
-        return 1;
+    //
+    // Generate assets
+    //
+    {
+        llvm::outs() << "Generating assets for docs...\n";
+        auto Err = G->get()->createResources(CDCtx);
+        if (Err) {
+            llvm::errs() << toString(std::move(Err)) << "\n";
+            return EXIT_FAILURE;
+        }
     }
 
-    return 0;
+    return EXIT_SUCCESS;
 }

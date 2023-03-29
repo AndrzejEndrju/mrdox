@@ -29,36 +29,63 @@
 namespace clang {
 namespace doc {
 
-class MapperActionFactory : public tooling::FrontendActionFactory {
-public:
-  MapperActionFactory(ClangDocContext CDCtx) : CDCtx(CDCtx) {}
-  std::unique_ptr<FrontendAction> create() override;
+namespace {
 
-private:
-  ClangDocContext CDCtx;
-};
+// VFALCO It looks like each created action needs
+//        its own copy of the ClangDocContext?
+//        Maybe because of concurrency.
 
-std::unique_ptr<FrontendAction> MapperActionFactory::create() {
-  class ClangDocAction : public clang::ASTFrontendAction {
-  public:
-    ClangDocAction(ClangDocContext CDCtx) : CDCtx(CDCtx) {}
-
-    std::unique_ptr<clang::ASTConsumer>
-    CreateASTConsumer(clang::CompilerInstance &Compiler,
-                      llvm::StringRef InFile) override
+struct action
+    : public clang::ASTFrontendAction
+{
+    explicit
+    action(
+        ClangDocContext CDCtx)
+        : CDCtx(CDCtx)
     {
-      return std::make_unique<MapASTVisitor>(&Compiler.getASTContext(), CDCtx);
     }
 
-  private:
+    std::unique_ptr<clang::ASTConsumer>
+    CreateASTConsumer(
+        clang::CompilerInstance& Compiler,
+        llvm::StringRef InFile) override
+    {
+        return std::make_unique<MapASTVisitor>(
+            &Compiler.getASTContext(), CDCtx);
+    }
+
+private:
     ClangDocContext CDCtx;
-  };
-  return std::make_unique<ClangDocAction>(CDCtx);
-}
+};
+
+struct factory
+    : public tooling::FrontendActionFactory
+{
+    explicit
+    factory(
+        ClangDocContext CDCtx)
+        : CDCtx(CDCtx)
+    {
+    }
+
+    std::unique_ptr<FrontendAction>
+    create() override
+    {
+        return std::make_unique<action>(CDCtx);
+    }
+        
+    ClangDocContext CDCtx;
+};
+
+} // (anon)
+
+//------------------------------------------------
 
 std::unique_ptr<tooling::FrontendActionFactory>
-newMapperActionFactory(ClangDocContext CDCtx) {
-  return std::make_unique<MapperActionFactory>(CDCtx);
+newMapperActionFactory(
+    ClangDocContext CDCtx)
+{
+    return std::make_unique<factory>(CDCtx);
 }
 
 } // namespace doc
